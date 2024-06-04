@@ -8,12 +8,14 @@ on:
       - '**'
     paths:
       - '.github/workflows/build.yml'
+      - '*.go'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
   pull_request:
     paths:
       - '.github/workflows/build.yml'
+      - '*.go'
       - 'go.mod'
       - 'go.sum'
       - 'Makefile'
