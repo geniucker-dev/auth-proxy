@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+    paths:
+      - '.github/workflows/build.yml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+  pull_request:
+    paths:
+      - '.github/workflows/build.yml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Makefile'
+  workflow_call:
+
+jobs:
+  build:
+    if: github.repository == 'geniucker-dev/auth-proxy'
+    strategy:
+      matrix:
+        goos: [windows, linux, darwin]
+        goarch: [amd64, arm64]
+        include:
+          - goos: linux
+            goarch: arm
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      CGO_ENABLED: 0
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Build
+        run: |
+          mkdir -p build
+          make all args="-o ./build/"
+          ls -la build
+
+      - name: Hash for each file
+        run: |
+          cd build
+          for file in *; do
+            sha256sum $file > $file.sha256
+          done
+          cd ..
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-proxy-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: build/*
