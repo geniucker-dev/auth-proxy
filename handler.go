@@ -8,18 +8,15 @@ import (
 )
 
 func loginPost(c *gin.Context) {
-	redirectURL := c.PostForm("originalURL")
 	password := c.PostForm("password")
+	redirectURL := c.PostForm("originalURL")
+	if redirectURL == "" {
+		redirectURL = "/"
+	}
 	if password == configInstance.Password {
 		c.SetCookie(configInstance.CookieName, configInstance.CookieValue, configInstance.CookieTTL, "/", "", false, true)
-		if redirectURL == "" {
-			redirectURL = "/"
-		}
-		c.Redirect(http.StatusFound, redirectURL)
-		return
-	} else {
-		c.String(http.StatusUnauthorized, "Login Failed")
 	}
+	c.Redirect(http.StatusFound, redirectURL)
 }
 
 func proxyRequest(c *gin.Context) {
